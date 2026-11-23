@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' app:; script-src 'self' app: 'wasm-unsafe-eval'; style-src 'self' app: 'unsafe-inline'; media-src 'self' app: blob: mediastream:; connect-src 'self' app: blob:; worker-src 'self' app: blob:" />
+  <title>Camera</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; }
+    #bubble { width: 100%; height: 100%; overflow: hidden; border: var(--bw, 3px) solid var(--bc, #fff); box-sizing: border-box; -webkit-app-region: drag; cursor: move; background: #000; border-radius: 50%; }
+    body[data-border="off"] #bubble { border: none; }
+    body[data-shape="rounded"] #bubble { border-radius: 18%; }
+    video, canvas { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); pointer-events: none; display: block; }
+    body[data-mirror="off"] video, body[data-mirror="off"] canvas { transform: none; }
+    canvas { display: none; }
+    body[data-bg="on"] canvas { display: block; }
+    body[data-bg="on"] video { display: none; }
+  </style>
+</head>
+<body data-shape="circle">
+  <div id="bubble"><video id="cam" autoplay muted playsinline></video><canvas id="out"></canvas></div>
+  <script src="overlay.js"></script>
+</body>
+</html>

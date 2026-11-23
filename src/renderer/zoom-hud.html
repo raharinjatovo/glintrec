@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' app:; script-src 'self' app:; style-src 'self' app: 'unsafe-inline'" />
+  <title>Zoom</title>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; font: 12px "Segoe UI", system-ui, sans-serif; user-select: none; }
+    body { --accent: #9aa0a6; }
+    body[data-mode="manual"] { --accent: #3ea6ff; }
+    body[data-mode="auto"] { --accent: #35d07f; }
+    #pill { box-sizing: border-box; width: 100%; height: 100%; display: flex; align-items: center; gap: 10px; padding: 0 12px;
+      border-radius: 22px; background: rgba(20, 22, 26, .9); color: #e8eaed; border: 1.5px solid var(--accent);
+      transition: border-color .2s, box-shadow .25s; }
+    #pill.flash { box-shadow: 0 0 0 3px var(--accent); }
+    #big { font-size: 22px; font-weight: 700; min-width: 50px; text-align: right; color: var(--accent); font-variant-numeric: tabular-nums; transition: color .2s; }
+    #side { flex: 1; min-width: 0; }
+    #label { font-size: 11px; line-height: 1.2; white-space: nowrap; margin-bottom: 4px; }
+    #track { position: relative; height: 5px; border-radius: 3px; background: #3a3f48; overflow: hidden; }
+    #fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--accent); border-radius: 3px; transition: width .12s linear, background .2s; }
+    /* Ticks at 2x, 3x (1x and 4x are the ends of the bar). */
+    #track b { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(20, 22, 26, .9); }
+  </style>
+</head>
+<body data-mode="none">
+  <div id="pill">
+    <div id="big">1.0&times;</div>
+    <div id="side">
+      <div id="label">Pas de zoom</div>
+      <div id="track"><i id="fill"></i><b style="left:33.33%"></b><b style="left:66.66%"></b></div>
+    </div>
+  </div>
+  <script src="zoom-hud.js"></script>
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' app:; script-src 'self' app: 'wasm-unsafe-eval'; style-src 'self' app: 'unsafe-inline'; img-src 'self' app: blob: data:; media-src 'self' app: blob: mediastream:; connect-src 'self' app: blob:; worker-src 'self' app: blob:" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Glintrec</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand" aria-label="Glintrec">
+        <svg class="brand-mark" viewBox="0 0 32 32" width="24" height="24" aria-hidden="true">
+          <rect x=".5" y=".5" width="31" height="31" rx="8" fill="var(--card)" stroke="var(--line)"/>
+          <path fill="var(--fg)" d="M16 4C16.4 11 21 15.6 28 16C21 16.4 16.4 21 16 28C15.6 21 11 16.4 4 16C11 15.6 15.6 11 16 4Z"/>
+          <circle cx="16" cy="16" r="3.5" fill="#e5484d"/>
+        </svg>
+        <span class="brand-name">Glintrec</span>
+      </div>
+      <span id="timer" class="timer">00:00</span>
+      <span class="rec-ind" aria-hidden="true"><span class="rec-dot"></span><span class="rec-tag">REC</span></span>
+      <p id="status" class="status" role="status"></p>
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Switch to light mode" title="Switch to light mode">
+        <svg class="i-sun" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        <svg class="i-moon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+      </button>
+    </header>
+
+    <main class="layout">
+      <section class="stage">
+        <div class="preview-wrap">
+          <canvas id="preview" width="1280" height="720"></canvas>
+          <div id="countdown" class="countdown" hidden></div>
+        </div>
+        <div class="transport">
+          <button id="start" type="button" class="primary btn-rec">Record</button>
+          <button id="pause" type="button" class="btn-t btn-pause" disabled>Pause</button>
+          <button id="stop" type="button" class="btn-t btn-stop" disabled>Stop</button>
+          <button id="screenshot" type="button" class="btn-t btn-shot">Screenshot</button>
+          <button id="quick-mode" type="button" class="toggle" aria-pressed="false" title="Switch between camera only and screen + camera">Screen + camera</button>
+        </div>
+        <div id="export-row" class="transport" hidden>
+          <button id="export-mp4" type="button" disabled>Export MP4</button>
+          <button id="export-gif" type="button" disabled>Export GIF</button>
+          <button id="trim-open" type="button" disabled>Trim...</button>
+        </div>
+        <div id="trim-panel" class="trim" hidden>
+          <video id="trim-video" controls preload="metadata"></video>
+          <div class="trim-controls">
+            <label>Start
+              <span class="trim-row"><input id="trim-start-range" type="range" min="0" max="0" step="0.1" value="0" /><input id="trim-start" class="keycap" type="text" spellcheck="false" autocomplete="off" /></span>
+            </label>
+            <label>End
+              <span class="trim-row"><input id="trim-end-range" type="range" min="0" max="0" step="0.1" value="0" /><input id="trim-end" class="keycap" type="text" spellcheck="false" autocomplete="off" /></span>
+            </label>
+            <div class="transport">
+              <button id="trim-set-start" type="button">Start = playhead</button>
+              <button id="trim-set-end" type="button">End = playhead</button>
+              <button id="trim-export" type="button" class="primary" disabled>Export trimmed copy</button>
+              <button id="trim-close" type="button">Close</button>
+            </div>
+          </div>
+        </div>
+        <p class="hints"><span id="drag-hint">Drag the camera bubble on the preview to move it.</span> <span id="ffmpeg-note"></span></p>
+        <section class="library-band" aria-label="Library">
+          <div class="band-head"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m16 6 4 14M12 6v14M8 8v12M4 4v16"/></svg><span>Library</span><span id="library-note" class="note"></span></div>
+          <div id="library-list" class="library"></div>
+        </section>
+      </section>
+
+      <aside class="panel">
+      <details class="sec" id="source-section" open>
+        <summary><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span>Source</span></summary>
+        <div class="sec-body">
+          <div class="row">
+            <button id="refresh-sources" type="button">Refresh</button>
+            <button id="open-mobile-browser" type="button" title="Phone-shaped browser window to record in mobile format">Mobile browser</button>
+          </div>
+          <div id="source-list" class="sources"></div>
+        </div>
+      </details>
+      <details class="sec" open>
+        <summary><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg><span>Camera</span></summary>
+        <div class="sec-body">
+          <label class="field">Device<select id="camera-select"></select></label>
+          <label class="inline"><span>Camera</span><input id="camera-toggle" type="checkbox" /></label>
+          <label class="inline"><span>Mirror</span><input id="mirror-toggle" type="checkbox" /></label>
+          <div id="overlay-section" class="group">
+            <label class="field">Corner
+              <select id="corner-select">
+                <option value="top-left">Top left</option>
+                <option value="top-right">Top right</option>
+                <option value="bottom-left">Bottom left</option>
+                <option value="bottom-right">Bottom right</option>
+              </select>
+            </label>
+            <label class="field">Size<input id="size-range" type="range" min="10" max="40" step="1" /></label>
+            <label class="field">Shape
+              <select id="shape-select">
+                <option value="circle">Circle</option>
+                <option value="rounded">Rounded</option>
+              </select>
+            </label>
+            <label class="inline"><span>Border</span><input id="border-toggle" type="checkbox" /></label>
+            <label class="field">Border color<input id="border-color" type="color" /></label>
+            <label class="field">Border width<input id="border-width" type="range" min="1" max="16" step="1" /></label>
+          </div>
+        </div>
+      </details>
+      <details class="sec">
+        <summary><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"/></svg><span>Audio</span></summary>
+        <div class="sec-body">
+          <label class="field">Device<select id="mic-select"></select></label>
+          <label class="inline"><span>Microphone</span><input id="mic-toggle" type="checkbox" /></label>
+          <label class="inline"><span>Noise suppression</span><input id="mic-processing-toggle" type="checkbox" /></label>
+          <label class="inline" id="system-audio-row"><span>System audio (PC sound)</span><i class="meter" aria-hidden="true"><b id="system-audio-meter"></b></i><input id="system-audio-toggle" type="checkbox" /></label>
+          <p class="hints">Records what your PC plays, not your microphone. Use headphones to avoid echo.</p>
+          <label class="inline"><span>Video only</span><input id="video-only-toggle" type="checkbox" /></label>
+        </div>
+      </details>
+      <details class="sec">
+        <summary><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg><span>Format &amp; framing</span></summary>
+        <div class="sec-body">
+          <label class="field">Capture
+            <select id="capture-mode">
+              <option value="screen">Screen + camera</option>
+              <option value="camera">Camera only</option>
+            </select>
+          </label>
+          <label class="field">Output
+            <select id="output-format">
+              <option value="pc">PC (16:9)</option>
+              <option value="mobile">Mobile (9:16)</option>
+            </select>
+          </label>
+          <label class="field">Quality<select id="quality-select"></select></label>
+          <div id="mobile-section" class="group" hidden>
+            <div id="mobile-framing-row" class="group">
+              <label class="field">Framing
+                <select id="mobile-framing">
+                  <option value="fit">Fit whole screen (blurred bars)</option>
+                  <option value="focus">Crop to focus point</option>
+                  <option value="follow">Crop follows cursor</option>
+                </select>
+              </label>
+              <label id="mobile-focus-row" class="field">Focus
+                <input type="range" id="mobile-focus" min="0" max="100">
+              </label>
+              <label id="mobile-zoom-row" class="field" hidden>Zoom
+                <input type="range" id="mobile-zoom" min="0" max="100">
+              </label>
+            </div>
+          </div>
+        </div>
+      </details>
+      <details class="sec">
+        <summary><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg><span>Background</span></summary>
+        <div class="sec-body">
+          <label class="field">Mode
+            <select id="bg-mode">
+              <option value="none">None</option>
+              <option value="blur">Blur</option>
+              <option value="color">Color</option>
+              <option value="image">Image</option>
+            </select>
+          </label>
+          <label class="field">Color<input id="bg-color" type="color" /></label>
+          <label class="field">Image<button id="bg-image-btn" type="button">Choose image...</button></label>
+          <label class="field">Blur<input id="blur-range" type="range" min="2" max="40" step="1" /></label>
+        </div>
+      </details>
+      <details class="sec" id="effects-section">
+        <summary><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 9 5 12 1.8-5.2L21 14Z"/><path d="M7.2 2.2 8 5.1M5.1 8l-2.9-.8M14 4.1 12 6M6 12l-1.9 2"/></svg><span>Effects</span></summary>
+        <div class="sec-body">
+          <label class="inline"><span>Cursor highlight</span><input id="fx-cursor" type="checkbox" /></label>
+          <label class="inline"><span>Click ripples</span><input id="fx-ripples" type="checkbox" /></label>
+          <label class="field">Auto-zoom
+            <select id="fx-zoom">
+              <option value="1">Off</option>
+              <option value="1.5">1.5x</option>
+              <option value="2">2x</option>
+            </select>
+          </label>
+          <label class="inline"><span>Show keystrokes</span><input id="fx-keys" type="checkbox" /></label>
+          <label class="inline"><span>Zoom indicator (not recorded)</span><input id="fx-zoom-hud" type="checkbox" /></label>
+          <p class="note warn">Keystrokes include passwords typed while recording.</p>
+          <p id="fx-note" class="note">Screen sources only. Applied while recording.</p>
+        </div>
+      </details>
+      <details class="sec">
+        <summary><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 8h.01M12 12h.01M14 8h.01M16 12h.01M18 8h.01M6 8h.01M7 16h10M8 12h.01"/><rect width="20" height="16" x="2" y="4" rx="2"/></svg><span>Shortcuts</span></summary>
+        <div class="sec-body">
+          <label class="field">Start / stop<input id="hotkey-toggle" class="keycap" type="text" spellcheck="false" autocomplete="off" /></label>
+          <label class="field">Pause / resume<input id="hotkey-pause" class="keycap" type="text" spellcheck="false" autocomplete="off" /></label>
+          <label class="field">Screenshot<input id="hotkey-screenshot" class="keycap" type="text" spellcheck="false" autocomplete="off" /></label>
+          <label class="field">Annotate<input id="hotkey-annotate" class="keycap" type="text" spellcheck="false" autocomplete="off" /></label>
+          <label class="field">Zoom in<input id="hotkey-zoom-in" class="keycap" type="text" spellcheck="false" autocomplete="off" /></label>
+          <label class="field">Zoom out<input id="hotkey-zoom-out" class="keycap" type="text" spellcheck="false" autocomplete="off" /></label>
+          <label class="field">Zoom reset<input id="hotkey-zoom-reset" class="keycap" type="text" spellcheck="false" autocomplete="off" /></label>
+          <label class="field">Camera mode<input id="hotkey-toggle-camera" class="keycap" type="text" spellcheck="false" autocomplete="off" /></label>
+          <p id="hotkey-note" class="note">Example: CommandOrControl+Shift+R. Empty disables.</p>
+        </div>
+      </details>
+      </aside>
+    </main>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' app:; script-src 'self' app:; style-src 'self' app: 'unsafe-inline'" />
+  <title>Cadre</title>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; user-select: none; }
+    /* The box is exactly the recorded area. Window exclusion from capture is not reliable on every PC, so nothing is
+       drawn inside the box: the outline sits OUTSIDE it (outline-offset leaves a margin for the few frames of lag while
+       the area moves) and the huge shadow only dims what is NOT recorded. */
+    #box { position: absolute; box-sizing: border-box; display: none;
+      outline: 4px solid #3ea6ff; outline-offset: 10px;
+      box-shadow: 0 0 0 100vmax rgba(0, 0, 0, .35); }
+  </style>
+</head>
+<body>
+  <div id="box"></div>
+  <script src="capture-frame.js"></script>
+</body>
+</html>

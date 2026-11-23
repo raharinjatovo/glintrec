@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' app:; script-src 'self' app:; style-src 'self' app: 'unsafe-inline'" />
+  <title>Glintrec - Mobile</title>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #14161a; font: 13px "Segoe UI", system-ui, sans-serif; user-select: none; }
+    #bar { box-sizing: border-box; height: 44px; display: flex; align-items: center; gap: 3px; padding: 0 6px; background: #1d2026; border-bottom: 1px solid #2c3038; }
+    button { width: 28px; height: 28px; flex: none; border: 0; border-radius: 14px; background: transparent; color: #e8eaed; font-size: 15px; cursor: pointer; padding: 0; }
+    button:hover:not(:disabled) { background: #2f343d; }
+    button:disabled { color: #5f6570; cursor: default; }
+    #address { flex: 1; min-width: 0; height: 28px; box-sizing: border-box; border: 1px solid transparent; border-radius: 14px; padding: 0 10px; background: #2a2e36; color: #e8eaed; font: inherit; outline: none; }
+    #address:focus { border-color: #3ea6ff; user-select: text; }
+    #notice { position: absolute; top: 46px; left: 8px; right: 8px; padding: 6px 10px; border-radius: 8px; background: #5a2328; color: #ffd9db; font-size: 12px; }
+    #notice[hidden] { display: none; }
+  </style>
+</head>
+<body>
+  <div id="bar">
+    <button id="back" type="button" title="Precedent" aria-label="Precedent" disabled>&#8592;</button>
+    <button id="forward" type="button" title="Suivant" aria-label="Suivant" disabled>&#8594;</button>
+    <button id="reload" type="button" title="Recharger" aria-label="Recharger">&#8635;</button>
+    <input id="address" type="text" spellcheck="false" autocomplete="off" placeholder="Rechercher ou saisir une adresse" aria-label="Adresse" />
+    <button id="home" type="button" title="Accueil" aria-label="Accueil">&#8962;</button>
+  </div>
+  <div id="notice" hidden></div>
+  <script src="mobile-browser.js"></script>
+</body>
+</html>

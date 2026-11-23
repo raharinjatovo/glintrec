@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' app:; script-src 'self' app:; style-src 'self' app: 'unsafe-inline'" />
+  <title>Annotation</title>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; font: 13px "Segoe UI", system-ui, sans-serif; user-select: none; }
+    /* Near-zero alpha (not 0) so the whole window reliably receives the mouse while drawing. */
+    body[data-mode="draw"] { background: rgba(0, 0, 0, 0.01); cursor: crosshair; }
+    #ink { position: fixed; inset: 0; width: 100%; height: 100%; }
+    /* Fixed geometry: every item is placed from barLayout() (annotate.ts) so the copy the recorder paints matches. */
+    #barWrap { position: fixed; left: 0; top: 0; }
+    #bar { position: relative; border-radius: 10px; background: rgba(20, 22, 26, .92); color: #e8eaed; cursor: default; box-sizing: border-box; }
+    #bar > * { position: absolute; box-sizing: border-box; margin: 0; }
+    body:not([data-mode="draw"]) #barWrap { display: none; }
+    #grip { cursor: grab; touch-action: none; background: radial-gradient(circle, #9aa0a6 1.5px, transparent 2px) 0 0 / 7px 8px; }
+    #grip.drag { cursor: grabbing; }
+    .sw { border-radius: 50%; border: 2px solid transparent; padding: 0; cursor: pointer; }
+    .sw.on, .wd.on { border-color: #fff; outline: 1px solid #000; }
+    .wd { background: #3a3f48; border: 2px solid transparent; border-radius: 6px; padding: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .wd i { display: block; background: #e8eaed; border-radius: 50%; }
+    #clear, #close { background: #3a3f48; color: inherit; border: 0; border-radius: 6px; padding: 0; font: inherit; cursor: pointer; }
+    /* Not part of the recorded bar: sits below it. */
+    /* Recording controls: same commands as the floating toolbar (hidden while drawing). This overlay is content-protected, so they are never in the recording. */
+    #ctl { position: absolute; top: calc(100% + 6px); left: 0; display: flex; gap: 6px; padding: 6px; border-radius: 10px; background: rgba(20, 22, 26, .92); color: #e8eaed; cursor: default; }
+    #ctl[hidden] { display: none; }
+    #ctl button { background: #3a3f48; color: inherit; border: 0; border-radius: 6px; padding: 0 12px; height: 28px; font: inherit; cursor: pointer; white-space: nowrap; }
+    #ctl button:hover:not(:disabled) { background: #4a505b; }
+    #ctl button:disabled { opacity: .45; cursor: default; }
+    #ctl #ctl-stop { background: #c0392b; color: #fff; }
+    #hint { pointer-events: none; position: absolute; top: calc(100% + 52px); left: 0; width: max-content; max-width: 420px; color: #9aa0a6; font-size: 12px; text-shadow: 0 0 3px #000; }
+    #hint.right { left: auto; right: 0; text-align: right; }
+  </style>
+</head>
+<body data-mode="draw">
+  <canvas id="ink"></canvas>
+  <div id="barWrap">
+    <div id="bar">
+      <div id="grip" title="Drag to move"></div>
+      <button id="clear" type="button">Clear</button>
+      <button id="close" type="button">Close</button>
+    </div>
+    <div id="ctl" hidden>
+      <button id="ctl-pause" type="button">Pause</button>
+      <button id="ctl-mode" type="button">Cam seule</button>
+      <button id="ctl-stop" type="button">Arrêter</button>
+    </div>
+    <div id="hint"></div>
+  </div>
+  <script src="annotate.js"></script>
+</body>
+</html>

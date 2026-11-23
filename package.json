@@ -1,0 +1,65 @@
+{
+  "name": "glintrec",
+  "version": "2.0.0",
+  "description": "GlintRec - enregistreur d'écran avec annotations, zoom et webcam",
+  "author": "Mbolatiana",
+  "private": true,
+  "main": "dist/main/main.js",
+  "scripts": {
+    "assets": "node scripts/fetch-assets.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "build": "node scripts/build.mjs",
+    "start": "npm run build && electron .",
+    "test": "vitest run",
+    "check": "npm run typecheck && npm run build && npm test",
+    "pack": "npm run build && electron-builder --win --dir",
+    "dist": "npm run build && electron-builder --win nsis"
+  },
+  "dependencies": {
+    "@mediapipe/tasks-vision": "1.2.0",
+    "uiohook-napi": "1.5.5"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.6",
+    "electron": "45.1.0",
+    "electron-builder": "26.18.0",
+    "esbuild": "0.28.2",
+    "typescript": "7.0.2",
+    "vitest": "5.0.5"
+  },
+  "build": {
+    "appId": "com.glintrec.app",
+    "productName": "GlintRec",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**",
+      "package.json",
+      "!**/node_modules/uiohook-napi/{libuiohook,src}/**",
+      "!**/node_modules/uiohook-napi/prebuilds/!(win32-x64)/**"
+    ],
+    "asarUnpack": [
+      "**/node_modules/uiohook-napi/prebuilds/win32-x64/*.node"
+    ],
+    "icon": "assets/icon.png",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "npmRebuild": false
+  }
+}
