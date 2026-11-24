@@ -1,7 +1,7 @@
 {
   "name": "glintrec",
   "version": "2.0.0",
-  "description": "GlintRec - enregistreur d'écran avec annotations, zoom et webcam",
+  "description": "GlintRec - screen recorder with annotations, zoom and webcam",
   "author": "Mbolatiana",
   "private": true,
   "main": "dist/main/main.js",
@@ -12,8 +12,11 @@
     "start": "npm run build && electron .",
     "test": "vitest run",
     "check": "npm run typecheck && npm run build && npm test",
-    "pack": "npm run build && electron-builder --win --dir",
-    "dist": "npm run build && electron-builder --win nsis"
+    "pack": "npm run build && electron-builder --dir",
+    "dist": "npm run build && electron-builder",
+    "dist:win": "npm run build && electron-builder --win nsis --x64",
+    "dist:mac": "npm run build && electron-builder --mac dmg zip --x64 --arm64",
+    "dist:linux": "npm run build && electron-builder --linux AppImage --x64"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "1.2.0",
@@ -36,11 +39,10 @@
     "files": [
       "dist/**",
       "package.json",
-      "!**/node_modules/uiohook-napi/{libuiohook,src}/**",
-      "!**/node_modules/uiohook-napi/prebuilds/!(win32-x64)/**"
+      "!**/node_modules/uiohook-napi/{libuiohook,src}/**"
     ],
     "asarUnpack": [
-      "**/node_modules/uiohook-napi/prebuilds/win32-x64/*.node"
+      "**/node_modules/uiohook-napi/prebuilds/**/*.node"
     ],
     "icon": "assets/icon.png",
     "win": {
@@ -52,7 +54,10 @@
           ]
         }
       ],
-      "icon": "assets/icon.png"
+      "icon": "assets/icon.png",
+      "files": [
+        "!**/node_modules/uiohook-napi/prebuilds/!(win32-x64)/**"
+      ]
     },
     "nsis": {
       "oneClick": false,
@@ -60,6 +65,50 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
     },
-    "npmRebuild": false
+    "npmRebuild": false,
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "category": "public.app-category.video",
+      "icon": "assets/icon.png",
+      "files": [
+        "!**/node_modules/uiohook-napi/prebuilds/!(darwin-x64|darwin-arm64)/**"
+      ],
+      "extendInfo": {
+        "NSCameraUsageDescription": "GlintRec uses the camera for the webcam bubble.",
+        "NSMicrophoneUsageDescription": "GlintRec uses the microphone to record audio.",
+        "NSScreenCaptureUsageDescription": "GlintRec records your screen."
+      }
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "AudioVideo",
+      "icon": "assets/icon.png",
+      "files": [
+        "!**/node_modules/uiohook-napi/prebuilds/!(linux-x64)/**"
+      ]
+    },
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}"
   }
 }

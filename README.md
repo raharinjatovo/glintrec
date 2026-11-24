@@ -1,63 +1,88 @@
 # GlintRec
 
-Enregistreur d'écran pour Windows avec webcam, annotations, zoom et effets de souris. Application Electron + TypeScript.
+Screen recorder for Windows, macOS and Linux with webcam, annotations, zoom and mouse effects. Electron + TypeScript application.
 
-## Fonctionnalités
+## Download
 
-- **Modes de capture** : écran + caméra (bulle) ou caméra seule, avec bascule en direct pendant l'enregistrement. La caméra se réduit vers la bulle (et inversement) avec une transition animée.
-- **Barre de contrôle flottante** : Pause/Reprendre, Cam seule ↔ Cam + écran, Stop. Toujours au premier plan et **absente de la vidéo**. En sortie mobile, elle se colle à la fenêtre mobile et à la barre d'annotation.
-- **Annotations** à main levée par-dessus l'écran, enregistrées dans la vidéo. Les contrôles restent disponibles dans la barre d'annotation.
-- **Zoom** manuel et auto-zoom sur les clics, avec un indicateur de zoom hors vidéo.
-- **Effets** : surbrillance du curseur, ondulations au clic, affichage des touches.
-- **Sortie PC (16:9) ou mobile (9:16)** ; en mobile, cadrage « tout l'écran », « point de focus » ou « suit le curseur ».
-- **Arrière-plan caméra** : flou, couleur ou image (segmentation MediaPipe).
-- **Audio** : micro, audio système, option vidéo seule.
-- Capture d'écran, bibliothèque d'enregistrements, rognage (trim).
+Grab the latest build for your OS from the [Releases](../../releases) page:
 
-## Raccourcis par défaut
-
-| Action | Raccourci |
+| OS | File |
 |---|---|
-| Démarrer / arrêter | `Ctrl+Shift+R` |
-| Pause / reprise | `Ctrl+Shift+P` |
-| Capture d'écran | `Ctrl+Shift+S` |
-| Annoter | `Ctrl+Shift+D` |
+| Windows (x64) | `GlintRec-<version>-win-x64.exe` (NSIS installer) |
+| macOS (Intel / Apple Silicon) | `GlintRec-<version>-mac-<arch>.dmg` or `.zip` |
+| Linux (x64) | `GlintRec-<version>-linux-x64.AppImage` |
+
+## Features
+
+- **Capture modes**: screen + camera (bubble) or camera only, switchable live while recording. The camera shrinks to the bubble (and back) with an animated transition.
+- **Floating control bar**: Pause/Resume, Cam only ↔ Cam + screen, Stop. Always on top and **not visible in the video**. In mobile output it docks to the mobile window and the annotation bar.
+- **Freehand annotations** drawn over the screen and recorded in the video. Controls stay available in the annotation bar.
+- **Zoom**: manual and auto-zoom on clicks, with a zoom indicator that is not recorded.
+- **Effects**: cursor highlight, click ripples, key display.
+- **PC (16:9) or mobile (9:16) output**; in mobile, framing is "full screen", "focus point" or "follow cursor".
+- **Camera background**: blur, color or image (MediaPipe segmentation).
+- **Audio**: microphone, system audio, or video only.
+- Screenshots, recordings library, trimming.
+
+## Default shortcuts
+
+| Action | Shortcut |
+|---|---|
+| Start / stop | `Ctrl+Shift+R` |
+| Pause / resume | `Ctrl+Shift+P` |
+| Screenshot | `Ctrl+Shift+S` |
+| Annotate | `Ctrl+Shift+D` |
 | Zoom + / − / reset | `Ctrl+Alt+PageUp` / `PageDown` / `Home` |
-| Mode caméra | `Ctrl+Alt+F9` |
+| Camera mode | `Ctrl+Alt+F9` |
 
-Tous sont modifiables dans les paramètres.
+All of them can be changed in the settings.
 
-## Développement
+## Development
 
-Prérequis : Node.js, Windows x64.
+Requirements: Node.js 22+.
 
 ```bash
 npm install
-npm run assets    # récupère le modèle et le wasm MediaPipe (assets/mediapipe)
-npm start         # build + lance l'application
+npm run assets    # fetch the MediaPipe model and wasm (assets/mediapipe)
+npm start         # build + launch the app
 ```
 
-| Commande | Rôle |
+| Command | Purpose |
 |---|---|
-| `npm run typecheck` | vérification TypeScript |
+| `npm run typecheck` | TypeScript check |
 | `npm test` | tests (vitest) |
 | `npm run check` | typecheck + build + tests |
-| `npm run pack` | build non empaqueté (`release/win-unpacked`) |
-| `npm run dist` | installateur NSIS (`release/GlintRec Setup <version>.exe`) |
+| `npm run pack` | unpacked build for the current OS (`release/`) |
+| `npm run dist:win` | Windows NSIS installer |
+| `npm run dist:mac` | macOS dmg + zip (x64 and arm64), must run on macOS |
+| `npm run dist:linux` | Linux AppImage, best run on Linux |
+
+## Releasing
+
+Pushing a version tag builds the Windows, macOS and Linux packages on GitHub Actions and attaches them to a GitHub Release:
+
+```bash
+git tag v2.0.0
+git push origin v2.0.0
+```
+
+The workflow lives in `.github/workflows/release.yml` and can also be started manually (artifacts only, no release).
 
 ## Structure
 
 ```
-src/main/      processus principal Electron (fenêtres, IPC, raccourcis, fichiers)
-src/preload/   passerelles contextBridge
-src/renderer/  interface, compositeur canvas, effets
-src/shared/    logique pure partagée (testée)
-tests/         tests vitest
-scripts/       build et récupération des assets
+src/main/      Electron main process (windows, IPC, shortcuts, files)
+src/preload/   contextBridge bridges
+src/renderer/  UI, canvas compositor, effects
+src/shared/    shared pure logic (tested)
+tests/         vitest tests
+scripts/       build and asset fetching
 ```
 
 ## Notes
 
-- L'installateur n'est pas signé : Windows SmartScreen peut afficher un avertissement.
-- L'affichage des touches enregistre aussi les mots de passe saisis pendant l'enregistrement : désactivé par défaut.
-- En cas de souci avec la barre flottante, un journal est écrit dans `%APPDATA%\glintrec\control-hud.log`.
+- Builds are not signed. Windows SmartScreen may warn; on macOS, right-click the app and choose Open (or run `xattr -cr /Applications/GlintRec.app`).
+- macOS requires Screen Recording, Camera, Microphone and Accessibility (global key/mouse hooks) permissions in System Settings.
+- Linux: global input hooks need X11; on Wayland some features (key display, auto-zoom on clicks, hiding overlays from the capture) may be limited. System audio capture is not available on every platform.
+- Key display also records passwords typed during recording: disabled by default.
+- If the floating bar misbehaves, a log is written to `control-hud.log` in the app's user data folder (`%APPDATA%\glintrec` on Windows).
